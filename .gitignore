@@ -70,3 +70,8 @@ data/sessions/
 # ── 로그 ─────────────────────────────────────────────────
 *.log
 logs/
+
+# ── Claude Code 생성 문서 ──────
+CLAUDE.md
+MEMORY.md
+.claude/
