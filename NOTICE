@@ -1,0 +1,30 @@
+ropemetrics
+Copyright 2026 Kangsungmin (https://github.com/Kangsungmin)
+
+This product is licensed under the Apache License, Version 2.0.
+You may obtain a copy of the License at:
+    http://www.apache.org/licenses/LICENSE-2.0
+
+---------------------------------------------------------------------------
+
+ATTRIBUTION REQUIREMENT
+
+If you use ropemetrics in your product or service, you must include the
+following attribution in your documentation, About page, or any location
+where third-party notices are normally displayed:
+
+    This product uses ropemetrics (https://github.com/Kangsungmin/ropemetrics)
+    Copyright 2026 Kangsungmin
+    Licensed under the Apache License, Version 2.0
+
+---------------------------------------------------------------------------
+
+Third-party components used by ropemetrics:
+
+  NumPy — https://numpy.org
+  Copyright (c) 2005-2024, NumPy Developers
+  Licensed under the BSD 3-Clause License
+
+  MediaPipe (optional adapter) — https://mediapipe.dev
+  Copyright 2019 The MediaPipe Authors
+  Licensed under the Apache License, Version 2.0
