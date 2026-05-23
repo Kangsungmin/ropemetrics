@@ -21,6 +21,9 @@ from typing import Optional, Sequence
 import numpy as np
 
 class MyStrategy(JumpStrategy):
+    def __init__(self, config: JumpCounterConfig) -> None:
+        super().__init__(config)  # initializes self.config — required
+
     @property
     def name(self) -> str:
         return "my_strategy"
@@ -57,6 +60,8 @@ class MyBackendProvider(LandmarkProvider):
         # extract [x, y, z, visibility] from your backend's results
         ...
 ```
+
+`LandmarkProvider` already provides a default implementation of `get_landmarks()` that loops over `get_landmark()`, so you only need to implement `get_landmark()`.
 
 3. Add the optional dependency to `pyproject.toml` under `[project.optional-dependencies]`
 

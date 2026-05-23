@@ -27,6 +27,9 @@ pip install ropemetrics
 
 # With MediaPipe adapter
 pip install "ropemetrics[mediapipe]"
+
+# With MoveNet adapter (TensorFlow)
+pip install "ropemetrics[movenet]"
 ```
 
 ---
@@ -88,12 +91,12 @@ counter = JumpCounter(strategy=HipShoulderStrategy(cfg), config=cfg)
 
 ## Config Profiles
 
-| Profile | Use case | jump_threshold | cooldown_frames |
-|---------|----------|---------------|-----------------|
-| `JumpCounterConfig()` | Default | 0.025 | 8 |
-| `.slow()` | Beginners / adults | 0.040 | 12 |
-| `.fast()` | Double-unders | 0.015 | 5 |
-| `.child()` | Children / students | 0.018 | 8 |
+| Profile | Use case | jump_threshold | cooldown_frames | history_size | min_jump_frames | visibility_min |
+|---------|----------|---------------|-----------------|--------------|-----------------|----------------|
+| `JumpCounterConfig()` | Default | 0.025 | 8 | 10 | 3 | 0.5 |
+| `.slow()` | Beginners / adults | 0.040 | 12 | 12 | 4 | 0.5 |
+| `.fast()` | Double-unders | 0.015 | 5 | 7 | 2 | 0.4 |
+| `.child()` | Children / students | 0.018 | 8 | 8 | 2 | 0.35 |
 
 ---
 
