@@ -78,11 +78,13 @@ class JumpCounterConfig:
         history_size     : 이동평균 윈도우 프레임 수.
         visibility_min   : 랜드마크 최소 visibility. 미달 시 해당 프레임 스킵.
     """
-    jump_threshold:  float = 0.025
-    min_jump_frames: int   = 3
-    cooldown_frames: int   = 8
-    history_size:    int   = 10
-    visibility_min:  float = 0.5
+    jump_threshold:        float = 0.025
+    min_jump_frames:       int   = 3
+    cooldown_frames:       int   = 8
+    history_size:          int   = 10
+    visibility_min:        float = 0.5
+    wrist_motion_threshold: float = 0.015
+    wrist_history_size:    int   = 10
 
     @classmethod
     def slow(cls) -> JumpCounterConfig:

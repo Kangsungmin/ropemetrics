@@ -444,3 +444,113 @@ def test_counter_multiple_callbacks_accumulate_count():  # N-08
     assert len(events) >= 2
     assert events[0].count == 1
     assert events[1].count == 2
+
+
+# ── AnkleWristStrategy ────────────────────────────────────────────────────────
+
+class WristProvider(LandmarkProvider):
+    """발목과 손목 Y값을 독립적으로 지정할 수 있는 테스트 전용 Provider."""
+
+    def __init__(self, ankle_y: float, wrist_y: float, visibility: float = 1.0) -> None:
+        self._ankle_y = ankle_y
+        self._wrist_y = wrist_y
+        self._vis = visibility
+
+    def get_landmark(self, results, name):
+        y = self._wrist_y if "WRIST" in name else self._ankle_y
+        return np.array([0.5, y, 0.0, self._vis], dtype=np.float32)
+
+    def get_landmarks(self, results, names):
+        return {n: self.get_landmark(results, n) for n in names}
+
+
+def _run_wrist(counter, ankle_y_seq, wrist_y_seq, visibility=1.0):
+    """발목/손목 Y 시퀀스를 함께 공급한다."""
+    results = MagicMock()
+    for ankle_y, wrist_y in zip(ankle_y_seq, wrist_y_seq):
+        counter.update(WristProvider(ankle_y, wrist_y, visibility), results)
+
+
+def test_ankle_wrist_strategy_name():
+    """전략 이름이 'ankle_wrist'여야 한다."""
+    from ropemetrics.strategies import AnkleWristStrategy
+    cfg = JumpCounterConfig()
+    assert AnkleWristStrategy(cfg).name == "ankle_wrist"
+
+
+def test_ankle_wrist_required_landmarks():
+    """발목 2개 + 손목 2개 총 4개 랜드마크를 요구해야 한다."""
+    from ropemetrics.strategies import AnkleWristStrategy
+    cfg = JumpCounterConfig()
+    lms = AnkleWristStrategy(cfg).required_landmarks()
+    assert "LEFT_ANKLE"  in lms
+    assert "RIGHT_ANKLE" in lms
+    assert "LEFT_WRIST"  in lms
+    assert "RIGHT_WRIST" in lms
+
+
+def test_ankle_wrist_counts_with_wrist_motion():
+    """손목이 충분히 움직이는 상황에서 점프가 카운트되어야 한다."""
+    from ropemetrics.strategies import AnkleWristStrategy
+    cfg     = JumpCounterConfig(wrist_motion_threshold=0.015, wrist_history_size=5)
+    counter = JumpCounter(strategy=AnkleWristStrategy(cfg), config=cfg)
+
+    ground, air = 0.80, 0.70
+    # 손목은 0.40~0.60 사이를 오가며 진폭 0.20 (임계값 초과)
+    wrist_oscillation = [0.40, 0.50, 0.60, 0.50, 0.40] * 10
+
+    ankle_seq = [ground] * 10 + [air] * 5 + [ground] * 10
+    wrist_seq = wrist_oscillation[:len(ankle_seq)]
+
+    _run_wrist(counter, ankle_seq, wrist_seq)
+    assert counter.count >= 1
+
+
+def test_ankle_wrist_no_count_without_wrist_motion():
+    """손목이 정지 상태이면 점프 시퀀스에서도 카운트되지 않아야 한다."""
+    from ropemetrics.strategies import AnkleWristStrategy
+    cfg     = JumpCounterConfig(wrist_motion_threshold=0.015, wrist_history_size=5)
+    counter = JumpCounter(strategy=AnkleWristStrategy(cfg), config=cfg)
+
+    ground, air = 0.80, 0.70
+    wrist_still = [0.50] * 30  # 손목 정지 — 진폭 0.0
+
+    ankle_seq = [ground] * 10 + [air] * 5 + [ground] * 15
+    wrist_seq = wrist_still[:len(ankle_seq)]
+
+    _run_wrist(counter, ankle_seq, wrist_seq)
+    assert counter.count == 0
+
+
+def test_ankle_wrist_reset_clears_wrist_buffer():
+    """reset() 후 손목 버퍼가 초기화되어야 한다."""
+    from ropemetrics.strategies import AnkleWristStrategy
+    cfg      = JumpCounterConfig(wrist_history_size=5)
+    strategy = AnkleWristStrategy(cfg)
+
+    # 버퍼에 데이터 채우기
+    lm = lambda y: np.array([0.5, y, 0.0, 1.0], dtype=np.float32)
+    for y in [0.40, 0.50, 0.60, 0.50, 0.40]:
+        strategy.extract_signal({
+            "LEFT_ANKLE": lm(0.80), "RIGHT_ANKLE": lm(0.80),
+            "LEFT_WRIST": lm(y),    "RIGHT_WRIST": lm(y),
+        })
+
+    strategy.reset()
+    assert len(strategy._left_wrist_buf)  == 0
+    assert len(strategy._right_wrist_buf) == 0
+
+
+def test_ankle_wrist_no_count_before_buffer_fills():
+    """손목 버퍼가 채워지기 전에는 카운트되지 않아야 한다."""
+    from ropemetrics.strategies import AnkleWristStrategy
+    cfg     = JumpCounterConfig(wrist_motion_threshold=0.015, wrist_history_size=20)
+    counter = JumpCounter(strategy=AnkleWristStrategy(cfg), config=cfg)
+
+    # 손목 버퍼(20프레임) 미만으로 공급
+    ankle_seq = [0.80] * 5 + [0.70] * 5 + [0.80] * 5
+    wrist_seq = [0.40, 0.60] * 8  # 진폭 충분하나 버퍼 미충족
+    wrist_seq = wrist_seq[:len(ankle_seq)]
+
+    _run_wrist(counter, ankle_seq, wrist_seq)
+    assert counter.count == 0
