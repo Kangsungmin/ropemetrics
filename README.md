@@ -21,15 +21,17 @@ provider through a single `LandmarkProvider` interface.
 
 ## Installation
 
+> **Note:** ropemetrics is not yet published to PyPI. Install directly from GitHub:
+
 ```bash
 # Core only (numpy)
-pip install ropemetrics
+pip install "git+https://github.com/Kangsungmin/ropemetrics.git"
 
 # With MediaPipe adapter
-pip install "ropemetrics[mediapipe]"
+pip install "ropemetrics[mediapipe] @ git+https://github.com/Kangsungmin/ropemetrics.git"
 
 # With MoveNet adapter (TensorFlow)
-pip install "ropemetrics[movenet]"
+pip install "ropemetrics[movenet] @ git+https://github.com/Kangsungmin/ropemetrics.git"
 ```
 
 ---
