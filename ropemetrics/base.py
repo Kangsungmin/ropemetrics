@@ -132,6 +132,20 @@ class JumpCounterConfig:
             visibility_min  = 0.35,
         )
 
+    @classmethod
+    def ground_contact(cls) -> JumpCounterConfig:
+        """
+        지면 접촉 기반 전략(GroundContactStrategy)용 프리셋.
+        정규화 신호(ankle_y / ground_y)를 사용하므로 임계값이 작다.
+        """
+        return cls(
+            jump_threshold  = 0.03,
+            min_jump_frames = 2,
+            cooldown_frames = 8,
+            history_size    = 6,
+            visibility_min  = 0.5,
+        )
+
 
 # ── JumpStrategy ──────────────────────────────────────────────────────────────
 
